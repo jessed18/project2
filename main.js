@@ -31,4 +31,15 @@ function fetchGIFs(query) {
         `&lang=en` +
         `&bundle=messaging_non_clips`;
 
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            gifGrid.innerHTML = '';
+
+            if (data.data.length === 0) {
+                gifGrid.innerHTML = `<p>No GIFs found for "${query}". try another combination!</p>`;
+                return;
+            }
+        }
+
 }
