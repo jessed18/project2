@@ -40,6 +40,19 @@ function fetchGIFs(query) {
                 gifGrid.innerHTML = `<p>No GIFs found for "${query}". try another combination!</p>`;
                 return;
             }
-        }
 
+            data.data.forEach(gif => {
+                const card = document.createElement('div');
+                card.className = 'gif-card';
+                card.innerHTML = `
+                    <img src= "${gif.images.fixed_height.url}" alt=${gif.title}">
+                    <p>${query}</p>
+                    `;
+                gifGrid.appendChild(card);
+            });
+        })
+        .catch(error => {
+            console.error(error);
+            gifGrid.innerHTML = '<p>Somethign went wrong. Please try again.';
+        });
 }
