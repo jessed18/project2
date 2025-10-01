@@ -5,25 +5,25 @@ const celebritySelect = document.getElementById('celebrity-select');
 const feelingSelect = document.getElementById('feeling-select');
 const gifGrid = document.getElementById('gif-grid');
 
-searchBtn.addEventListener('click',() => {
+searchBtn.addEventListener('click', () => {
     const celebrity = celebritySelect.value;
     const feeling = feelingSelect.value;
 
-if (! celebrity || !feeling) {
-    alert('Please select both a celebrity and a feeling.');
-    return;
-}
+    if (!celebrity || !feeling) {
+        alert('Please select both a celebrity and a feeling.');
+        return;
+    }
 
-const query = `${celebrity}${feeling}`;
+    const query = `${celebrity} ${feeling}`;
 
-fetchGIFs(query);
+    fetchGIFs(query);
 });
 
 function fetchGIFs(query) {
     gifGrid.innerHTML = '<p>Loading...</p>';
     const url =
         `https://api.giphy.com/v1/gifs/search?` +
-        `api_key=F2W3Pbaqyv7ut7qfbnEBDRNqAsytdSE5` +
+        `api_key=${API_KEY}` +
         `&q=${encodeURIComponent(query)}` +
         `&limit=12` +
         `&offset=0` +
@@ -37,7 +37,7 @@ function fetchGIFs(query) {
             gifGrid.innerHTML = '';
 
             if (data.data.length === 0) {
-                gifGrid.innerHTML = `<p>No GIFs found for "${query}". try another combination!</p>`;
+                gifGrid.innerHTML = `<p>No GIFs found for "${query}". Try another combination!</p>`;
                 return;
             }
 
@@ -45,14 +45,14 @@ function fetchGIFs(query) {
                 const card = document.createElement('div');
                 card.className = 'gif-card';
                 card.innerHTML = `
-                    <img src= "${gif.images.fixed_height.url}" alt=${gif.title}">
+                    <img src="${gif.images.fixed_height.url}" alt="${gif.title}">
                     <p>${query}</p>
-                    `;
+                `;
                 gifGrid.appendChild(card);
             });
         })
         .catch(error => {
             console.error(error);
-            gifGrid.innerHTML = '<p>Somethign went wrong. Please try again.';
+            gifGrid.innerHTML = '<p>Something went wrong. Please try again.</p>';
         });
 }
