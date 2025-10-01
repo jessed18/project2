@@ -5,16 +5,16 @@
     justify-content: center;
 
     .gif-card {
-        flex: 1 1 300px;
-        max-width: 300px;
+        flex: 1 1 600px;
+        max-width: 600px;
         background: #fff;
-        padding: 10px;
+        padding: 20px;
         border-radius: 8px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 
         img {
             width: 100%;
-            height: 300px; 
+            height: 600px; // Even bigger fixed height
             object-fit: cover;
             border-radius: 8px;
         }
@@ -25,10 +25,34 @@
             font-size: 0.9rem;
         }
     }
-    @media (max-width: 320px) {
-        flex-direction: column;
+    @media (max-width: 1024px) {
         .gif-card {
-            max-width: 100%;
+            flex: 1 1 500px;
+            max-width: 500px;
+            
+            img {
+                height: 500px;
+            }
+        }
+    }
+    @media (max-width: 768px) {
+        .gif-card {
+            flex: 1 1 400px;
+            max-width: 400px;
+            
+            img {
+                height: 400px;
+            }
+        }
+    }
+    @media (max-width: 480px) {
+        .gif-card {
+            flex: 1 1 350px;
+            max-width: 350px;
+            
+            img {
+                height: 350px;
+            }
         }
     }
 }
