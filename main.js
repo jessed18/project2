@@ -52,10 +52,12 @@ function fetchGIFs(query) {
             data.data.forEach(gif => {
                 const card = document.createElement('div');
                 card.className = 'gif-card';
-                card.innerHTML = `
-                    <img src="${gif.images.fixed_height.url}" alt="${gif.title}">
-                    <p>${query}</p>
-                `;
+
+                const img = document.createElement('img');
+                img.src = gif.images.fixed_height.url;
+                img.alt = gif.title;
+
+                card.appendChild(img);
                 gifGrid.appendChild(card);
             });
         })
