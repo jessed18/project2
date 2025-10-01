@@ -9,12 +9,20 @@ searchBtn.addEventListener('click', () => {
     const celebrity = celebritySelect.value;
     const feeling = feelingSelect.value;
 
-    if (!celebrity || !feeling) {
-        alert('Please select both a celebrity and a feeling.');
+    if (!celebrity && !feeling) {
+        alert('Please select at least a celebrity or a feeling.');
         return;
     }
 
-    const query = `${celebrity} ${feeling}`;
+    // Build query based on selection
+    let query = '';
+    if (celebrity && feeling) {
+        query = `${celebrity} ${feeling}`;
+    } else if (celebrity) {
+        query = celebrity;
+    } else if (feeling) {
+        query = feeling;
+    }
 
     fetchGIFs(query);
 });
