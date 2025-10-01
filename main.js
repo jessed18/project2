@@ -24,10 +24,10 @@ searchBtn.addEventListener('click', () => {
         query = feeling;
     }
 
-    fetchGIFs(query);
+    fetchGIFs(query, celebrity);
 });
 
-function fetchGIFs(query) {
+function fetchGIFs(query, celebrity) {
     gifGrid.innerHTML = '<p>Loading...</p>';
     const url =
         `https://api.giphy.com/v1/gifs/search?` +
@@ -49,17 +49,19 @@ function fetchGIFs(query) {
                 return;
             }
 
-            data.data.forEach(gif => {
-                const card = document.createElement('div');
-                card.className = 'gif-card';
+            data.data
+                .filter(gif => gif.title.toLowerCase().includes(celebrity.toLowerCase()))
+                .forEach(gif => {
+                    const card = document.createElement('div');
+                    card.className = 'gif-card';
 
-                const img = document.createElement('img');
-                img.src = gif.images.fixed_height.url;
-                img.alt = gif.title;
+                    const img = document.createElement('img');
+                    img.src = gif.images.fixed_height.url;
+                    img.alt = gif.title;
 
-                card.appendChild(img);
-                gifGrid.appendChild(card);
-            });
+                    card.appendChild(img);
+                    gifGrid.appendChild(card);
+                });
         })
         .catch(error => {
             console.error(error);
