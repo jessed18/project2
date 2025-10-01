@@ -1,4 +1,4 @@
-const API_KEY = 'key'
+const API_KEY = 'F2W3Pbaqyv7ut7qfbnEBDRNqAsytdSE5';
 
 const searchBtn = document.getElementById('search-btn');
 const celebritySelect = document.getElementById('celebrity-select');
@@ -14,7 +14,21 @@ if (! celebrity || !feeling) {
     return;
 }
 
+const query = `${celebrity}${feeling}`;
 
+fetchGIFs(query);
+});
 
+function fetchGIFs(query) {
+    gifGrid.innerHTML = '<p>Loading...</p>';
+    const url =
+        `https://api.giphy.com/v1/gifs/search?` +
+        `api_key=F2W3Pbaqyv7ut7qfbnEBDRNqAsytdSE5` +
+        `&q=${encodeURIComponent(query)}` +
+        `&limit=12` +
+        `&offset=0` +
+        `&rating=g` +
+        `&lang=en` +
+        `&bundle=messaging_non_clips`;
 
-})
+}
