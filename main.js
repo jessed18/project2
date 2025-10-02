@@ -1,5 +1,8 @@
 const API_KEY = 'F2W3Pbaqyv7ut7qfbnEBDRNqAsytdSE5';
 
+// Test API key on load
+console.log('Testing API connection...');
+
 const searchBtn = document.getElementById('search-btn');
 const celebritySelect = document.getElementById('celebrity-select');
 const feelingSelect = document.getElementById('feeling-select');
@@ -17,11 +20,15 @@ searchBtn.addEventListener('click', () => {
     fetchGIFs(celebrity, feeling);
 });
 
-function fetchGIFs(celebrity, feeling) {
+async function fetchGIFs(celebrity, feeling) {
     gifGrid.innerHTML = '<p>Loading...</p>';
     
+    if (celebrity === "Mariah Carey") {
+        await fetchMariahMix(feeling);
+        return;
+    }
+
     let query = '';
-    
     if (celebrity && feeling) {
         query = `${celebrity} ${feeling}`;
     } else if (celebrity) {
@@ -30,6 +37,106 @@ function fetchGIFs(celebrity, feeling) {
         query = feeling;
     }
 
+    fetchRegularGIFs(query, celebrity, feeling);
+}
+
+async function fetchMariahMix(feeling) {
+    // Multiple queries to get more 90s content
+    const queries = [
+        feeling ? `Mariah Carey 90s ${feeling}` : 'Mariah Carey 90s',
+        feeling ? `Mariah Carey 1990s ${feeling}` : 'Mariah Carey 1990s',
+        feeling ? `Mariah Carey 90s music video ${feeling}` : 'Mariah Carey 90s music video',
+        feeling ? `Mariah Carey retro ${feeling}` : 'Mariah Carey retro',
+        feeling ? `Mariah Carey ${feeling}` : 'Mariah Carey'
+    ];
+
+    try {
+        const promises = queries.map(query => 
+            fetch(
+                `https://api.giphy.com/v1/gifs/search?` +
+                `api_key=${API_KEY}` +
+                `&q=${encodeURIComponent(query)}` +
+                `&limit=30` +
+                `&offset=0` +
+                `&rating=g` +
+                `&lang=en`
+            ).then(res => {
+                if (!res.ok) {
+                    throw new Error(`API error: ${res.status}`);
+                }
+                return res.json();
+            })
+        );
+
+        const results = await Promise.all(promises);
+        console.log('API Response:', results);
+        
+        if (!results.some(r => r.data)) {
+            throw new Error('Invalid API response');
+        }
+        
+        // Combine all results, prioritizing 90s content
+        let allGifs = [];
+        results.forEach(result => {
+            if (result.data) {
+                allGifs = [...allGifs, ...result.data];
+            }
+        });
+        
+        const excludeWords = [
+            'shark', 'whale', 'left shark', 'fish',
+            'cat', 'dog', 'animal', 'pet',
+            'cartoon', 'animated', 'animation',
+            'clipart', 'illustration', 'drawing',
+            'costume', 'mascot',
+            'impersonator', 'impression', 'parody', 'snl', 'mimic', 'cover'
+        ];
+
+        let filteredGifs = allGifs.filter(gif => {
+            const title = gif.title.toLowerCase();
+            
+            if (!title.includes('mariah carey') && !title.includes('mariah') && !title.includes('carey')) {
+                return false;
+            }
+            
+            if (feeling && !title.includes(feeling.toLowerCase())) {
+                return false;
+            }
+            
+            const hasExcludedWord = excludeWords.some(word => title.includes(word));
+            return !hasExcludedWord;
+        });
+
+        const uniqueGifs = [];
+        const seenUrls = new Set();
+        
+        // Prioritize GIFs with 90s keywords in the title
+        const sortedGifs = filteredGifs.sort((a, b) => {
+            const aTitle = a.title.toLowerCase();
+            const bTitle = b.title.toLowerCase();
+            const aHas90s = aTitle.includes('90') || aTitle.includes('1990') || aTitle.includes('retro');
+            const bHas90s = bTitle.includes('90') || bTitle.includes('1990') || bTitle.includes('retro');
+            
+            if (aHas90s && !bHas90s) return -1;
+            if (!aHas90s && bHas90s) return 1;
+            return 0;
+        });
+        
+        for (const gif of sortedGifs) {
+            if (!seenUrls.has(gif.images.original.url) && uniqueGifs.length < 15) {
+                seenUrls.add(gif.images.original.url);
+                uniqueGifs.push(gif);
+            }
+        }
+
+        displayGIFs(uniqueGifs, 'Mariah Carey');
+    } catch (error) {
+        console.error('Fetch error:', error);
+        gifGrid.innerHTML = '<p>API Error: ' + error.message + '. The API key may be invalid. Please check the console for details.</p>';
+    }
+}
+
+function fetchRegularGIFs(query, celebrity, feeling) {
     const url =
         `https://api.giphy.com/v1/gifs/search?` +
         `api_key=${API_KEY}` +
@@ -40,54 +147,50 @@ function fetchGIFs(celebrity, feeling) {
         `&lang=en`;
 
     fetch(url)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`API error: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('API Response:', data);
+            
+            if (!data.data) {
+                throw new Error('Invalid API response');
+            }
+
             let filteredGifs = [];
 
-            // More comprehensive exclude list
             const excludeWords = [
                 'shark', 'whale', 'left shark', 'fish',
                 'cat', 'dog', 'animal', 'pet',
                 'cartoon', 'animated', 'animation',
                 'clipart', 'illustration', 'drawing',
-                'costume', 'mascot'
+                'costume', 'mascot',
+                'impersonator', 'impression', 'parody', 'snl', 'mimic'
             ];
 
             if (celebrity) {
-                // Filter to only show actual celebrity GIFs
                 filteredGifs = data.data.filter(gif => {
                     const title = gif.title.toLowerCase();
                     const celebName = celebrity.toLowerCase();
                     
-                    // Must contain celebrity name
                     if (!title.includes(celebName)) return false;
                     
-                    // Exclude if contains any excluded words
                     const hasExcludedWord = excludeWords.some(word => title.includes(word));
                     if (hasExcludedWord) return false;
                     
-                    // If feeling is specified, prioritize GIFs with that feeling
-                    if (feeling) {
-                        return title.includes(feeling.toLowerCase());
+                    if (feeling && !title.includes(feeling.toLowerCase())) {
+                        return false;
                     }
                     
                     return true;
                 });
-
-                // If we filtered out too much, relax the feeling requirement
-                if (filteredGifs.length < 6 && feeling) {
-                    filteredGifs = data.data.filter(gif => {
-                        const title = gif.title.toLowerCase();
-                        const hasExcludedWord = excludeWords.some(word => title.includes(word));
-                        return title.includes(celebrity.toLowerCase()) && !hasExcludedWord;
-                    });
-                }
             } else {
-                // Feeling only
                 filteredGifs = data.data;
             }
 
-            // Remove duplicates and limit to 12
             const uniqueGifs = [];
             const seenUrls = new Set();
             
@@ -125,4 +228,4 @@ function displayGIFs(gifs, query) {
         card.appendChild(img);
         gifGrid.appendChild(card);
     });
-}
+}w
