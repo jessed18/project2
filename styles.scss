@@ -1,3 +1,73 @@
+
+$primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+$accent-color: #ff6b6b;
+$accent-hover: #ee5a52;
+$spacing: 20px;
+$border-radius: 8px;
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto Slab', serif;
+    background: $primary-gradient;
+    min-height: 100vh;
+    padding: $spacing;
+}
+
+header {
+    text-align: center;
+    color: white;
+    margin-bottom: 40px;
+
+    h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+}
+
+.search-container {
+    max-width: 600px;
+    margin: 0 auto 40px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+#celebrity-select {
+    flex: 1;
+    min-width: 200px;
+    padding: 12px 16px;
+    font-size: 1rem;
+    border: none;
+    border-radius: $border-radius;
+    background: white;
+    cursor: pointer;
+    font-family: 'Roboto Slab', serif;
+}
+
+#search-btn {
+    padding: 12px 32px;
+    font-size: 1rem;
+    font-weight: 700;
+    background: $accent-color;
+    color: white;
+    border: none;
+    border-radius: $border-radius;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    font-family: 'Roboto Slab', serif;
+
+    &:hover {
+        background: $accent-hover;
+    }
+}
+
 #gif-grid {
     display: flex;
     flex-wrap: wrap;
@@ -7,16 +77,18 @@
     .gif-card {
         flex: 1 1 600px;
         max-width: 600px;
+        min-width: 600px;
         background: #fff;
-        padding: 20px;
-        border-radius: 8px;
+        padding: $spacing;
+        border-radius: $border-radius;
         box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 
         img {
             width: 100%;
-            height: 600px; // Even bigger fixed height
+            height: 600px;
             object-fit: cover;
-            border-radius: 8px;
+            border-radius: $border-radius;
+            display: block;
         }
 
         p {
@@ -25,34 +97,46 @@
             font-size: 0.9rem;
         }
     }
+
     @media (max-width: 1024px) {
         .gif-card {
             flex: 1 1 500px;
             max-width: 500px;
+            min-width: 500px;
             
             img {
                 height: 500px;
             }
         }
     }
+
     @media (max-width: 768px) {
         .gif-card {
             flex: 1 1 400px;
             max-width: 400px;
+            min-width: 400px;
             
             img {
                 height: 400px;
             }
         }
     }
+
     @media (max-width: 480px) {
         .gif-card {
             flex: 1 1 350px;
             max-width: 350px;
+            min-width: 350px;
             
             img {
                 height: 350px;
             }
         }
+    }
+}
+
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 2rem;
     }
 }

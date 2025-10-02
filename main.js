@@ -1,53 +1,38 @@
 const API_KEY = 'F2W3Pbaqyv7ut7qfbnEBDRNqAsytdSE5';
 
-// Test API key on load
-console.log('Testing API connection...');
-
 const searchBtn = document.getElementById('search-btn');
 const celebritySelect = document.getElementById('celebrity-select');
-const feelingSelect = document.getElementById('feeling-select');
 const gifGrid = document.getElementById('gif-grid');
 
 searchBtn.addEventListener('click', () => {
     const celebrity = celebritySelect.value;
-    const feeling = feelingSelect.value;
 
-    if (!celebrity && !feeling) {
-        alert('Please select at least a celebrity or a feeling.');
+    if (!celebrity) {
+        alert('Please select a celebrity.');
         return;
     }
 
-    fetchGIFs(celebrity, feeling);
+    fetchGIFs(celebrity);
 });
 
-async function fetchGIFs(celebrity, feeling) {
-    gifGrid.innerHTML = '<p>Loading...</p>';
+async function fetchGIFs(celebrity) {
+    gifGrid.innerHTML = '<p>Loading GIFs...</p>';
     
     if (celebrity === "Mariah Carey") {
-        await fetchMariahMix(feeling);
+        await fetchMariahMix();
         return;
     }
 
-    let query = '';
-    if (celebrity && feeling) {
-        query = `${celebrity} ${feeling}`;
-    } else if (celebrity) {
-        query = celebrity;
-    } else {
-        query = feeling;
-    }
-
-    fetchRegularGIFs(query, celebrity, feeling);
+    fetchRegularGIFs(celebrity);
 }
 
-async function fetchMariahMix(feeling) {
-    // Multiple queries to get more 90s content
+async function fetchMariahMix() {
     const queries = [
-        feeling ? `Mariah Carey 90s ${feeling}` : 'Mariah Carey 90s',
-        feeling ? `Mariah Carey 1990s ${feeling}` : 'Mariah Carey 1990s',
-        feeling ? `Mariah Carey 90s music video ${feeling}` : 'Mariah Carey 90s music video',
-        feeling ? `Mariah Carey retro ${feeling}` : 'Mariah Carey retro',
-        feeling ? `Mariah Carey ${feeling}` : 'Mariah Carey'
+        'Mariah Carey 90s',
+        'Mariah Carey 1990s',
+        'Mariah Carey 90s music video',
+        'Mariah Carey retro',
+        'Mariah Carey'
     ];
 
     try {
@@ -60,22 +45,11 @@ async function fetchMariahMix(feeling) {
                 `&offset=0` +
                 `&rating=g` +
                 `&lang=en`
-            ).then(res => {
-                if (!res.ok) {
-                    throw new Error(`API error: ${res.status}`);
-                }
-                return res.json();
-            })
+            ).then(res => res.json())
         );
 
         const results = await Promise.all(promises);
-        console.log('API Response:', results);
         
-        if (!results.some(r => r.data)) {
-            throw new Error('Invalid API response');
-        }
-        
-        // Combine all results, prioritizing 90s content
         let allGifs = [];
         results.forEach(result => {
             if (result.data) {
@@ -99,18 +73,13 @@ async function fetchMariahMix(feeling) {
                 return false;
             }
             
-            if (feeling && !title.includes(feeling.toLowerCase())) {
-                return false;
-            }
-            
             const hasExcludedWord = excludeWords.some(word => title.includes(word));
             return !hasExcludedWord;
         });
 
         const uniqueGifs = [];
-        const seenUrls = new Set();
+        const seenIds = new Set();
         
-        // Prioritize GIFs with 90s keywords in the title
         const sortedGifs = filteredGifs.sort((a, b) => {
             const aTitle = a.title.toLowerCase();
             const bTitle = b.title.toLowerCase();
@@ -123,8 +92,8 @@ async function fetchMariahMix(feeling) {
         });
         
         for (const gif of sortedGifs) {
-            if (!seenUrls.has(gif.images.original.url) && uniqueGifs.length < 15) {
-                seenUrls.add(gif.images.original.url);
+            if (!seenIds.has(gif.id) && uniqueGifs.length < 20) {
+                seenIds.add(gif.id);
                 uniqueGifs.push(gif);
             }
         }
@@ -132,36 +101,23 @@ async function fetchMariahMix(feeling) {
         displayGIFs(uniqueGifs, 'Mariah Carey');
     } catch (error) {
         console.error('Fetch error:', error);
-        gifGrid.innerHTML = '<p>API Error: ' + error.message + '. The API key may be invalid. Please check the console for details.</p>';
+        gifGrid.innerHTML = '<p>Something went wrong. Please try again.</p>';
     }
 }
 
-function fetchRegularGIFs(query, celebrity, feeling) {
+function fetchRegularGIFs(celebrity) {
     const url =
         `https://api.giphy.com/v1/gifs/search?` +
         `api_key=${API_KEY}` +
-        `&q=${encodeURIComponent(query)}` +
+        `&q=${encodeURIComponent(celebrity)}` +
         `&limit=50` +
         `&offset=0` +
         `&rating=g` +
         `&lang=en`;
 
     fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`API error: ${response.status}`);
-            }
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
-            console.log('API Response:', data);
-            
-            if (!data.data) {
-                throw new Error('Invalid API response');
-            }
-
-            let filteredGifs = [];
-
             const excludeWords = [
                 'shark', 'whale', 'left shark', 'fish',
                 'cat', 'dog', 'animal', 'pet',
@@ -171,37 +127,27 @@ function fetchRegularGIFs(query, celebrity, feeling) {
                 'impersonator', 'impression', 'parody', 'snl', 'mimic'
             ];
 
-            if (celebrity) {
-                filteredGifs = data.data.filter(gif => {
-                    const title = gif.title.toLowerCase();
-                    const celebName = celebrity.toLowerCase();
-                    
-                    if (!title.includes(celebName)) return false;
-                    
-                    const hasExcludedWord = excludeWords.some(word => title.includes(word));
-                    if (hasExcludedWord) return false;
-                    
-                    if (feeling && !title.includes(feeling.toLowerCase())) {
-                        return false;
-                    }
-                    
-                    return true;
-                });
-            } else {
-                filteredGifs = data.data;
-            }
+            const filteredGifs = data.data.filter(gif => {
+                const title = gif.title.toLowerCase();
+                const celebName = celebrity.toLowerCase();
+                
+                if (!title.includes(celebName)) return false;
+                
+                const hasExcludedWord = excludeWords.some(word => title.includes(word));
+                return !hasExcludedWord;
+            });
 
             const uniqueGifs = [];
             const seenUrls = new Set();
             
             for (const gif of filteredGifs) {
-                if (!seenUrls.has(gif.images.original.url) && uniqueGifs.length < 12) {
+                if (!seenUrls.has(gif.images.original.url) && uniqueGifs.length < 20) {
                     seenUrls.add(gif.images.original.url);
                     uniqueGifs.push(gif);
                 }
             }
 
-            displayGIFs(uniqueGifs, query);
+            displayGIFs(uniqueGifs, celebrity);
         })
         .catch(error => {
             console.error(error);
@@ -213,7 +159,7 @@ function displayGIFs(gifs, query) {
     gifGrid.innerHTML = '';
 
     if (gifs.length === 0) {
-        gifGrid.innerHTML = `<p>No GIFs found for "${query}". Try another combination!</p>`;
+        gifGrid.innerHTML = `<p>No GIFs found for "${query}". Try another celebrity!</p>`;
         return;
     }
 
@@ -228,4 +174,4 @@ function displayGIFs(gifs, query) {
         card.appendChild(img);
         gifGrid.appendChild(card);
     });
-}w
+}
