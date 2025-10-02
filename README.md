@@ -1,4 +1,4 @@
-# Jesse de Guzman * Celebrity GIF Generator
+# Jesse de Guzman • Celebrity GIF Generator
 
 ## Overview / Description
 The Celebrity GIF Generator is an interactive web application that allows users to quickly generate GIFs of selected celebrities.  
